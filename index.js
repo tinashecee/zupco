@@ -16,7 +16,8 @@ const kafkaConf = {...externalConfig.kafkaConfig ,
 }; 
 const topics = [externalConfig.topic] 
 const app = express();
-
+var longitude=31.053650019;
+var latitude=-17.938357;
 const PORT = process.env.PORT || 8080
 
 app.set('views', path.join(__dirname, 'views'));
@@ -43,17 +44,25 @@ app.post('/api/users', function(req, res) {
     sendToKafka(payload);
     res.send(200);
 });
+app.get('/gps', function(req, res){
+    let data ={
+        latitude:latitude,
+        longitude:longitude
+    }
+    res.json(data); //also tried to do it through .send, but there data only on window in browser
+});
 let stream = new Kafka.KafkaConsumer.createReadStream(kafkaConf, { "auto.offset.reset": "earliest" }, { topics: topics })
 stream.on('data', function (message) { 
 
   try{
       const jsonObj = JSON.parse(message.value.toString())
-      const longitude = jsonObj.longitude;
-      const latitude = jsonObj.latitude;
+      const long = jsonObj.longitude;
+      const lat = jsonObj.latitude;
       const timestamp = JSON.parse(message.timestamp.toString())
       const offset = JSON.parse(message.offset.toString())
-   
-      console.log(longitude,timestamp, offset, latitude);
+      longitude=long;
+      latitude=lat;
+      console.log(long,timestamp, offset, lat);
       
   }
   catch (error) {
@@ -65,4 +74,5 @@ stream.consumer.on("disconnected", function (arg) {
  console.log(`The stream consumer has been disconnected`)  
  process.exit(); 
 }); 
+
 app.listen(PORT, console.log(`Server running on port ${PORT}`));

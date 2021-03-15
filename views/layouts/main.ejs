@@ -17,7 +17,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <link rel="stylesheet" href="css/style.css">
-    <title>Taxis Online</title>
+    <title>Zupco Bus Tracking System</title>
   
 </head>
 <style>
@@ -301,7 +301,7 @@ visibility: visible;
 <header>
      <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="#">Taxis Online</a>
+        <a class="navbar-brand" href="#">Zupco Bus Tracking System</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02"
             aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -311,7 +311,7 @@ visibility: visible;
 </nav>
    </header>
    <div class="container" style="padding-top:30px;margin-top:30px;">
-    <div class="col"><h2>Choose Your Destination</h2> </div><div id="first"> </div>
+    <div class="col"><h2>Choose Your Route</h2> </div><div id="first"> </div>
    
 </div>     
 <div id='map' class='map container' style="max-height:400px;">
@@ -326,18 +326,7 @@ visibility: visible;
         </form>
     </div>
 </div>
-<div class="overlay-trigger" style="bottom: 30px;position: absolute;left: 50%;
-transform: translateX(-50%);"><button style="color:#fbfbfb;
-    text-decoration: none;
-    background:#040f52;
-    padding: 6px 30px; 
-    border-radius: 50px;" href="#">Request Taxi</button></div>
-<button class="overlay-close">Cancel Request</button>
-    
-<div class="overlay overlay01"><div id="loading-wrapper">
-<div id="loading-text">REQUESTING</div>
-<div id="loading-content"></div>
-</div></div>
+
    <%- body %>
     <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.24/maps/maps-web.min.js'></script>
     <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.24/services/services-web.min.js'></script>
@@ -347,8 +336,10 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
 	<script data-showable type='text/javascript' src='./assets/js/foldable.js'></script>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script>
-        var cordLat;
-        var cordLon;
+        var cordLat=0;
+        var cordLon=0;
+        var condition1 = 0;
+        var element = document.createElement('strong');
 		var distance;
 		var fee = 500;
 		var dest_name;
@@ -356,7 +347,9 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
         var map = tt.map({
             key: 'jy6IpLAs3aODBterwGy1XccsJ8Bp3n9N',
             container: 'map',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !window.isMobileOrTablet(),
+            center: [31, -17.8],
+            zoom: 8
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -381,13 +374,29 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
 
             var popup = new tt.Popup({offset: 30}).setText(popupText);
             // add marker to map
-            new tt.Marker({element: markerElement, anchor: 'bottom'})
-                .setLngLat(position)
-                .setPopup(popup)
-                .addTo(map);
+            var myMarker = new tt.Marker({element: markerElement, anchor: 'bottom'});
+            myMarker.setLngLat(position)
+            myMarker.setPopup(popup)
+            myMarker.addTo(map);
+            
+            setTimeout(() => {  myMarker.remove(); }, 500);
         }
-
-        createMarker('frontal-taxi-cab.svg', [31.04733, -17.8315], '#5327c3', 'SVG icon');
+        let latitudeA;
+        let longitudeA;
+        //get gps co-ordinates
+        async function requester() {
+            const response = await fetch('http://localhost:8080/gps');
+            const data = await response.json();
+            latitudeA = data.latitude;
+            longitudeA = data.longitude;
+            createMarker('frontal-taxi-cab.svg', [longitudeA, latitudeA], '#5327c3', 'SVG icon');
+        }
+        var intervalId = setInterval(function() {
+            requester();
+        }, 50);
+        
+        
+        
         
         function RoutingAB() {
             this.state = {
@@ -443,8 +452,7 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
         };
 
         RoutingAB.prototype.reverseGeocodeCurrentPosition = function(position) {
-            cordLat=position.coords.latitude;
-            cordLon=position.coords.longitude;
+            
             this.state.start = [position.coords.longitude, position.coords.latitude];
 
             tt.services.reverseGeocode({
@@ -583,8 +591,7 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
                     var a = 
                         Math.sin(dLat/2) * Math.sin(dLat/2) +
                         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-                        Math.sin(dLon/2) * Math.sin(dLon/2)
-                        ; 
+                        Math.sin(dLon/2) * Math.sin(dLon/2); 
                     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
                     var d = R * c; // Distance in km
                     return d;
@@ -593,18 +600,24 @@ transform: translateX(-50%);"><button style="color:#fbfbfb;
                     function deg2rad(deg) {
                     return deg * (Math.PI/180)
                     }
-                   
+                           if(cordLat==0 && cordLon==0){
+                                cordLat=event.data.result.position.lat;
+                                cordLon=event.data.result.position.lng;
+                           }
                                // (B1) CREATE NEW HTML ELEMENT
                             var val = Math.round(getDistanceFromLatLonInKm(cordLat,cordLon,event.data.result.position.lat,event.data.result.position.lng) * 10) / 10 ;  
                             distance =val;
 							dest_name = event.data.result.poi.name;
-							dest_addr = event.data.result.address.freeformAddress;
-							var element = document.createElement('strong');
+                            dest_addr = event.data.result.address.freeformAddress;
+                            if(condition1!=0){
+                                document.getElementById("first").removeChild(element);
+                            }
+							
                             element.innerHTML = event.data.result.poi.name+" "+val+" Km";
                         
                             // (B2) ATTACH TO <DIV>
                             document.getElementById("first").appendChild(element);
-           
+                            condition1=1;   
                             console.log(event.data.result.address.freeformAddress)
             
                    
