@@ -385,7 +385,7 @@ visibility: visible;
         let longitudeA;
         //get gps co-ordinates
         async function requester() {
-            const response = await fetch('http://localhost:8080/gps');
+            const response = await fetch('https://zupcobustracker.herokuapp.com/gps');
             const data = await response.json();
             latitudeA = data.latitude;
             longitudeA = data.longitude;
