@@ -60,8 +60,13 @@ stream.on('data', function (message) {
       const lat = jsonObj.latitude;
       const timestamp = JSON.parse(message.timestamp.toString())
       const offset = JSON.parse(message.offset.toString())
-      longitude=long;
-      latitude=lat;
+      let check1 = isLatitude(lat);
+      let check2 = isLongitude(long);
+      if(check1 && check2){
+        longitude=long;
+        latitude=lat;
+      }
+      
       console.log(long,timestamp, offset, lat);
       
   }
@@ -74,5 +79,10 @@ stream.consumer.on("disconnected", function (arg) {
  console.log(`The stream consumer has been disconnected`)  
  process.exit(); 
 }); 
-
+function isLatitude(lat){
+    return isFinite(lat) && Math.abs(lat) <= 90 && (typeof lat !== 'string' || lat.trim() !== '');
+}
+function isLongitude(lng){
+    return isFinite(lng) && Math.abs(lng) <= 180 && (typeof lat !== 'string' || lat.trim() !== '');
+}
 app.listen(PORT, console.log(`Server running on port ${PORT}`));
