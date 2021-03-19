@@ -3,18 +3,6 @@ const ejs = require('ejs');
 const expressLayouts = require('express-ejs-layouts')
 const bodyParser = require('body-parser');
 const path = require('path');
-const Kafka = require("node-rdkafka"); // see: https://github.com/blizzard/node-rdkafka 
-const externalConfig = require('./config'); 
-const sendToKafka = require('./prod');
-const CONSUMER_GROUP_ID = "node-consumer" 
-// construct a Kafka Configuration object understood by the node-rdkafka library 
-// merge the configuration as defined in config.js with additional properties defined here 
-const kafkaConf = {...externalConfig.kafkaConfig ,
- ...{ "group.id": CONSUMER_GROUP_ID,
- "socket.keepalive.enable": true,
- "debug": "generic,broker,security"} 
-}; 
-const topics = [externalConfig.topic] 
 const app = express();
 var longitude=31.053650019;
 var latitude=-17.938357;
@@ -35,13 +23,22 @@ app.get('', (req, res) => {
 
 app.post('/api/users', function(req, res) {
     var lat = req.param('latitude');
-    var lon = req.param('longitude');
-    let payload ={
-        latitude:lat,
-        longitude:lon
+    var long = req.param('longitude');
+    let check1 = isLatitude(lat);
+      let check2 = isLongitude(long);
+      
+      if(check1 && check2){
+        
+        if(lat != 0 && long != 0){
+            console.log(check1)
+        console.log(check2)
+        longitude=long;
+        latitude=lat;
+        
+      }
     }
     
-    sendToKafka(payload);
+    //sendToKafka(payload);
     res.send(200);
 });
 app.get('/gps', function(req, res){
@@ -51,38 +48,11 @@ app.get('/gps', function(req, res){
     }
     res.json(data); //also tried to do it through .send, but there data only on window in browser
 });
-let stream = new Kafka.KafkaConsumer.createReadStream(kafkaConf, { "auto.offset.reset": "earliest" }, { topics: topics })
-stream.on('data', function (message) { 
 
-  try{
-      const jsonObj = JSON.parse(message.value.toString())
-      const long = jsonObj.longitude;
-      const lat = jsonObj.latitude;
-      const timestamp = JSON.parse(message.timestamp.toString())
-      const offset = JSON.parse(message.offset.toString())
-      let check1 = isLatitude(lat);
-      let check2 = isLongitude(long);
-      if(check1 && check2){
-        longitude=long;
-        latitude=lat;
-      }
-      
-      console.log(long,timestamp, offset, lat);
-      
-  }
-  catch (error) {
-      console.log('err=', error)
-  }
-}); 
-console.log(`Stream consumer created to consume from topic ${topics}`); 
-stream.consumer.on("disconnected", function (arg) {
- console.log(`The stream consumer has been disconnected`)  
- process.exit(); 
-}); 
 function isLatitude(lat){
     return isFinite(lat) && Math.abs(lat) <= 90 && (typeof lat !== 'string' || lat.trim() !== '');
 }
 function isLongitude(lng){
-    return isFinite(lng) && Math.abs(lng) <= 180 && (typeof lat !== 'string' || lat.trim() !== '');
+    return isFinite(lng) && Math.abs(lng) <= 180 && (typeof lng !== 'string' || lng.trim() !== '');
 }
 app.listen(PORT, console.log(`Server running on port ${PORT}`));
