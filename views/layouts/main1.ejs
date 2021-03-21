@@ -1,0 +1,536 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" >
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <link rel='stylesheet' type='text/css' href='https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.24/maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='./assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='./assets/ui-library/icons-css/routing.css'/>
+    <link rel='stylesheet' type='text/css' href='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/3.1.6-public-preview.3//SearchBox.css'/>
+    <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/3.1.6-public-preview.3//SearchBox-web.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+    <title>Zupco Bus Tracking System</title>
+  
+</head>
+<style>
+        #foldable {
+            width: 320px;
+        }
+        #form {
+            margin-top: 10px;
+        }
+        .icon {
+            background-size: cover;
+            height: 30px;
+            width: 30px;
+        }
+        .tt-icon-size {
+            height: 18px !important;
+            padding: 8px;
+            width: 18px !important;
+        }
+        .icon-spacing-right {
+            margin-right: 12px;
+            margin-top: 22px;
+        }
+        .icon-spacing-left {
+            margin-left: 12px;
+            margin-top: 24px;
+        }
+        .tt-search-box-input {
+            width: calc(100% - 25px) !important;
+        }
+        .searchbox-container {
+            display: flex;
+        }
+
+        .searchbox-container > .tt-search-box {
+            flex: 1;
+            padding-right: 26px;
+        }
+        .my-location-button {
+            background-image: url("./assets/svg/my-location.svg");
+            cursor: pointer;
+            margin-left: 7px;
+            padding: 12px;
+        }
+        .my-location-button:hover {
+            background-image: url("./assets/svg/my-location-hover.svg");
+        }
+        .route-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .marker-icon {
+            background-position: center;
+            background-size: 22px 22px;
+            border-radius: 50%;
+            height: 22px;
+            left: 4px;
+            position: absolute;
+            text-align: center;
+            top: 3px;
+            transform: rotate(45deg);
+            width: 22px;
+        }
+        .marker {
+            height: 30px;
+            width: 30px;
+        }
+        .marker-content {
+            background: #c30b82;
+            border-radius: 50% 50% 50% 0;
+            height: 30px;
+            left: 50%;
+            margin: -15px 0 0 -15px;
+            position: absolute;
+            top: 50%;
+            transform: rotate(-45deg);
+            width: 30px;
+        }
+        .marker-content::before {
+            background: #ffffff;
+            border-radius: 50%;
+            content: "";
+            height: 24px;
+            margin: 3px 0 0 3px;
+            position: absolute;
+            width: 24px;
+        }
+
+    
+.overlay-close {
+position: fixed;
+bottom: 10%;
+left: 50%;
+z-index: 10;
+padding: 1em 2.5em;
+background: #fff;
+border: 1px solid #fff;
+border-radius: 4px;
+color: #222;
+font-size: 16px;
+text-align: center;
+cursor: pointer;
+opacity: 0;
+visibility: hidden;
+transition: .2s ease-in-out;
+transform: translate(-50%, -50%);
+}
+.overlay-close.is-open {
+opacity: 1;
+visibility: visible;
+}
+.overlay-close:hover {
+background: transparent;
+color: #fff;
+}
+
+.overlay01 {
+position: fixed;
+top: 0;
+left: 0;
+z-index: 2;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, .7);
+opacity: 0;
+visibility: hidden;
+transition: .3s linear;
+}
+.overlay01.is-open {
+opacity: 1;
+visibility: visible;
+}
+#loading-wrapper {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+
+#loading-text {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: #999;
+  width: 100px;
+  height: 30px;
+  margin: -7px 0 0 -45px;
+  text-align: center;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-size: 20px;
+}
+
+#loading-content {
+  display: block;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  width: 170px;
+  height: 170px;
+  margin: -85px 0 0 -85px;
+  border: 3px solid #F00;
+}
+
+#loading-content:after {
+  content: "";
+  position: absolute;
+  border: 3px solid #0F0;
+  left: 15px;
+  right: 15px;
+  top: 15px;
+  bottom: 15px;
+}
+
+#loading-content:before {
+  content: "";
+  position: absolute;
+  border: 3px solid #00F;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  bottom: 5px;
+}
+
+#loading-content {
+  border: 3px solid transparent;
+  border-top-color: #4D658D;
+  border-bottom-color: #4D658D;
+  border-radius: 50%;
+  -webkit-animation: loader 2s linear infinite;
+  -moz-animation: loader 2s linear infinite;
+  -o-animation: loader 2s linear infinite;
+  animation: loader 2s linear infinite;
+}
+
+#loading-content:before {
+  border: 3px solid transparent;
+  border-top-color: #D4CC6A;
+  border-bottom-color: #D4CC6A;
+  border-radius: 50%;
+  -webkit-animation: loader 3s linear infinite;
+    -moz-animation: loader 2s linear infinite;
+  -o-animation: loader 2s linear infinite;
+  animation: loader 3s linear infinite;
+}
+
+#loading-content:after {
+  border: 3px solid transparent;
+  border-top-color: #84417C;
+  border-bottom-color: #84417C;
+  border-radius: 50%;
+  -webkit-animation: loader 1.5s linear infinite;
+  animation: loader 1.5s linear infinite;
+    -moz-animation: loader 2s linear infinite;
+  -o-animation: loader 2s linear infinite;
+}
+
+@-webkit-keyframes loaders {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+#content-wrapper {
+  color: #FFF;
+  position: fixed;
+  left: 0;
+  top: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+#header
+{
+  width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  height: 100px;
+  background-color: #666;
+}
+
+#content
+{
+  width: 800px;
+  height: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  background-color: #888;
+} 
+.range-slider {
+  margin: 60px 0 0 0%;
+}
+
+.range-slider {
+  width: 100%;
+}
+
+.range-slider__range {
+  -webkit-appearance: none;
+  width: calc(100% - (73px));
+  height: 10px;
+  border-radius: 5px;
+  background: #d7dcdf;
+  outline: none;
+  padding: 0;
+  margin: 0;
+}
+.range-slider__range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+          appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2c3e50;
+  cursor: pointer;
+  -webkit-transition: background 0.15s ease-in-out;
+  transition: background 0.15s ease-in-out;
+}
+.range-slider__range::-webkit-slider-thumb:hover {
+  background: #1abc9c;
+}
+.range-slider__range:active::-webkit-slider-thumb {
+  background: #1abc9c;
+}
+.range-slider__range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: #2c3e50;
+  cursor: pointer;
+  -moz-transition: background 0.15s ease-in-out;
+  transition: background 0.15s ease-in-out;
+}
+.range-slider__range::-moz-range-thumb:hover {
+  background: #1abc9c;
+}
+.range-slider__range:active::-moz-range-thumb {
+  background: #1abc9c;
+}
+.range-slider__range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px #1abc9c;
+}
+
+.range-slider__value {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  color: #fff;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 3px;
+  background: #2c3e50;
+  padding: 5px 10px;
+  margin-left: 8px;
+}
+.range-slider__value:after {
+  position: absolute;
+  top: 8px;
+  left: -7px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-right: 7px solid #2c3e50;
+  border-bottom: 7px solid transparent;
+  content: "";
+}
+
+::-moz-range-track {
+  background: #d7dcdf;
+  border: 0;
+}
+
+input::-moz-focus-inner,
+input::-moz-focus-outer {
+  border: 0;
+}       
+</style>
+<body>
+<!-- Header -->
+<header>
+     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">Zupco Bus Tracking System</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor02"
+            aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarColor02">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://zupcobustracker.herokuapp.com/statistics">Statistics</a>
+                </li>
+               
+            </ul>
+        </div>
+
+    </div>
+</nav>
+   </header>
+   <div class="container" style="padding-top:30px;margin-top:30px;">
+    <div class="col"><h2>Heat Map | Days</h2> </div>
+</div>     
+<div id='map' class='map container' style="margin:50px auto;max-height:400px;">
+</div>
+
+   <%- body %>
+    <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.24/maps/maps-web.min.js'></script>
+    <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.24/services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='./assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='./assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='./assets/js/search/searchbox-enter-submit.js'></script>
+	<script data-showable type='text/javascript' src='./assets/js/foldable.js'></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+        var cordLat=0;
+        var cordLon=0;
+        var condition1 = 0;
+        var element = document.createElement('strong');
+		var distance;
+		var fee = 500;
+		var dest_name;
+        var dest_addr;
+        let val;
+        //var points;
+        var map = tt.map({
+            key: 'jy6IpLAs3aODBterwGy1XccsJ8Bp3n9N',
+            container: 'map',
+            dragPan: !window.isMobileOrTablet(),
+            zoom: 5,
+            center: [29.1549, -19.0154]
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        
+
+       
+        fetch('./points')
+  .then(res => res.json())
+  .then(data => {
+      var geoJson = {
+            type: 'FeatureCollection',
+            features: data.map(function(point) {
+                return {
+                    geometry: {
+                        type: 'Point',
+                        coordinates: point
+                    },
+                    properties: {}
+                };
+            })
+        };
+    map.addLayer({
+                'id': 'heatmap',
+                'type': 'heatmap',
+                'source': {
+                    'type': 'geojson',
+                    'data': geoJson
+                },
+                'paint': {
+                    // Increase the heatmap weight of each point
+                    'heatmap-weight': 0.6,
+
+                    // Increase the heatmap color weight weight by zoom level
+                    // heatmap-intensity is a multiplier on top of heatmap-weight
+                    'heatmap-intensity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 1,
+                        9, 3
+                    ],
+
+                    // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+                    // Begin color ramp at 0-stop with a 0-transparancy color
+                    // to create a blur-like effect.
+                    'heatmap-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['heatmap-density'],
+                        0, 'rgba(49, 150, 251, 0)',
+                        0.2, 'rgb(49, 150, 251)',
+                        0.4, 'rgb(127, 234, 20)',
+                        0.6, 'rgb(251, 251, 49)',
+                        0.8, 'rgb(251, 150, 49)',
+                        1, 'rgb(251, 49, 49)'
+                    ],
+
+                    // Adjust the heatmap radius by zoom level
+                    'heatmap-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 2,
+                        9, 20 // at zoom level 9 the radius will be 20px
+                    ],
+
+                    // heatmap opacity by zoom level
+                    'heatmap-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        3, 0, // at zoom level 3 the opacity will be 0
+                        5, 0.5,
+                        10, 1, // at zoom level 10 the opacity will be 1
+                        18, 0.6,
+                        20, 0.1
+                    ]
+                }
+            });
+	 })
+  .catch(err => {
+	console.error(err);
+  });
+        
+        
+              
+      //  map.on('load', function() {
+            
+      //  });
+
+            
+    </script>
+	
+</body>
+
+</html>
